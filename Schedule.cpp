@@ -65,13 +65,15 @@ void Schedule::printTaskSet(int index)
     m_tasksets[index].printTasks();
 }
 
-void Schedule::readTaskSets(string filename)
+// Reads in the task sets from a file
+bool Schedule::readTaskSets(string filename)
 {
     vector<TaskSet> taskSets;
     ifstream file(filename);
     if (!file)
     {
         cerr << "Error: Unable to open file " << filename << endl;
+        return false;
     }
 
     string line;
@@ -114,8 +116,10 @@ void Schedule::readTaskSets(string filename)
     }
     file.close();
     m_tasksets = taskSets;
+    return true;
 }
 
+// Writes the results of the algorithms to a file
 void Schedule::writeResults(string filename, int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
 {
     string schedule = "";
@@ -303,7 +307,7 @@ double Schedule::getAverageTimeAlgorithmA(int index, int numruns, Schedule* Algo
 
 
 //printScheduleEDF prints one edf schedule of index
-void Schedule::printScheduleEDF(int index, Schedule* EDF)
+void Schedule::printScheduleEDF(int index, int numruns, Schedule* EDF)
 {
     m_processors = m_tasksets[index].getNumProcessors();
     m_lcm = m_tasksets[index].getLCM();
@@ -328,8 +332,8 @@ void Schedule::printScheduleEDF(int index, Schedule* EDF)
     string schedule = EDF->runEDF_Algorithm();
     cout << "* " << schedule << endl;
     cout << "* " << endl;
-    int time = getTimeEDF(index, EDF);
-    cout << "* Time: " << time << " Microseconds" << endl;
+    int time = getAverageTimeEDF(index, numruns, EDF);
+    cout << "* Average Time: " << time << " Microseconds" << endl;
     cout << "* \n" << "****************************************************************************************************" << endl;
     cout << "\n\n" << endl;
 }
@@ -337,7 +341,7 @@ void Schedule::printScheduleEDF(int index, Schedule* EDF)
 
 //printScheduleLLF
 //This function prints one LLF schedule of index
-void Schedule::printScheduleLLF(int index, Schedule* LLF)
+void Schedule::printScheduleLLF(int index, int numruns, Schedule* LLF)
 {
     m_processors = m_tasksets[index].getNumProcessors();
     m_lcm = m_tasksets[index].getLCM();
@@ -360,12 +364,11 @@ void Schedule::printScheduleLLF(int index, Schedule* LLF)
     }
     cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
     cout << "* LLF: " << endl;
-    // Instantiate LLF object
     string schedule = LLF->CheckLLFSchedule();
     cout << "* " << schedule << endl;
     cout << "* " << endl;
-    int time = getTimeLLF(index, LLF);
-    cout << "* Time: " << time << " Microseconds" << endl;
+    int time = getAverageTimeLLF(index, numruns, LLF);
+    cout << "* Average Time: " << time << " Microseconds" << endl;
     cout << "* \n" << "****************************************************************************************************" << endl;
     cout << "\n\n" << endl;
 }
@@ -373,7 +376,7 @@ void Schedule::printScheduleLLF(int index, Schedule* LLF)
 
 //printScheduleAlgorithmA
 //This function prints one Algorithm A schedule of index
-void Schedule::printScheduleAlgorithmA(int index, Schedule* AlgorithmA)
+void Schedule::printScheduleAlgorithmA(int index, int numruns, Schedule* AlgorithmA)
 {
     m_processors = m_tasksets[index].getNumProcessors();
     m_lcm = m_tasksets[index].getLCM();
@@ -397,15 +400,15 @@ void Schedule::printScheduleAlgorithmA(int index, Schedule* AlgorithmA)
     cout << "* Algorithm-A: " << endl;
     cout << "* " << AlgorithmA->algorithmASchedule() << endl;
     cout << "* " << endl;
-    int time = getTimeAlgorithmA(index, AlgorithmA);
-    cout << "* Time: " << time << " Microseconds" << endl;
+    int time = getAverageTimeAlgorithmA(index, numruns, AlgorithmA);
+    cout << "* Average Time: " << time << " Microseconds" << endl;
     cout << "* \n" << "****************************************************************************************************" << endl;
     cout << "\n\n" << endl;
 }
 
 
 //printSchedules prints schedules of all three algorithms for index
-void Schedule::printSchedules(int index, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
+void Schedule::printSchedules(int index, int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
 {
     m_processors = m_tasksets[index].getNumProcessors();
     m_lcm = m_tasksets[index].getLCM();
@@ -435,29 +438,27 @@ void Schedule::printSchedules(int index, Schedule* EDF, Schedule* LLF, Schedule*
     string schedule = EDF->runEDF_Algorithm();
     cout << "* " << schedule << endl;
     cout << "* " << endl;
-    int timeE = getTimeEDF(index, EDF);
+    int timeE = getAverageTimeEDF(index, numruns, EDF);
     cout << "* Time: " << timeE << " Microseconds" << endl;
     cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
     cout << "* LLF: " << endl;
-    // Instantiate LLF object
     schedule = LLF->CheckLLFSchedule();
     cout << "* " << schedule << endl;
     cout << "* " << endl;
-    int timeL = getTimeLLF(index, LLF);
+    int timeL = getAverageTimeLLF(index, numruns, LLF);
     cout << "* Time: " << timeL << " Microseconds" << endl;
     cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
     cout << "* Algorithm-A: " << endl;
-    //Call Algorithm A
     cout << "* " << AlgorithmA->algorithmASchedule() << endl;
     cout << "* " << endl;
-    int timeA = getTimeAlgorithmA(index, AlgorithmA);
+    int timeA = getAverageTimeAlgorithmA(index, numruns, AlgorithmA);
     cout << "* Time: " << timeA << " Microseconds" << endl;
     cout << "* \n" << "****************************************************************************************************" << endl;
     cout << "\n\n" << endl;
 }
 
 //printScheduleEDF prints edf schedule of all tasksets
-void Schedule::printScheduleEDFAll(Schedule * EDF)
+void Schedule::printScheduleEDFAll(int numruns, Schedule * EDF)
 {
     for (int i = 0; i < m_tasksets.size(); i++)
     {
@@ -485,18 +486,16 @@ void Schedule::printScheduleEDFAll(Schedule * EDF)
         string schedule = EDF->runEDF_Algorithm();
         cout << "* " << schedule << endl;
         cout << "* " << endl;
-        int time = getTimeEDF(i, EDF);
-        cout << "* Time: " << time << " Microseconds" << endl;
+        int time = getAverageTimeEDF(i, numruns, EDF);
+        cout << "* Average Time: " << time << " Microseconds" << endl;
         cout << "* \n" << "****************************************************************************************************" << endl;
         cout << "\n\n" << endl;
     }
 }
 
-
-
 //printScheduleLLF
 //This function prints LLF schedule of all tasksets
-void Schedule::printScheduleLLFAll(Schedule* LLF)
+void Schedule::printScheduleLLFAll(int numruns, Schedule* LLF)
 {
     for (int i = 0; i < m_tasksets.size(); i++)
     {
@@ -521,12 +520,11 @@ void Schedule::printScheduleLLFAll(Schedule* LLF)
         }
         cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
         cout << "* LLF: " << endl;
-        // Instantiate LLF object
         string schedule = LLF->CheckLLFSchedule();
         cout << "* " << schedule << endl;
         cout << "* " << endl;
-        int time = getTimeLLF(i, LLF);
-        cout << "* Time: " << time << " Microseconds" << endl;
+        int time = getAverageTimeLLF(i, numruns, LLF);
+        cout << "* Average Time: " << time << " Microseconds" << endl;
         cout << "* \n" << "****************************************************************************************************" << endl;
         cout << "\n\n" << endl;
     }
@@ -535,7 +533,7 @@ void Schedule::printScheduleLLFAll(Schedule* LLF)
 
 //printScheduleAlgorithmA
 //This function prints Algorithm A schedule of all tasksets
-void Schedule::printScheduleAlgorithmAAll(Schedule * AlgorithmA)
+void Schedule::printScheduleAlgorithmAAll(int numruns, Schedule * AlgorithmA)
 {
     for (int i = 0; i < m_tasksets.size(); i++)
     {
@@ -559,11 +557,10 @@ void Schedule::printScheduleAlgorithmAAll(Schedule * AlgorithmA)
         }
         cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
         cout << "* Algorithm-A: " << endl;
-        //Call Algorithm A
         cout << "* " << AlgorithmA->algorithmASchedule() << endl;
         cout << "* " << endl;
-        int time = getTimeAlgorithmA(i, AlgorithmA);
-        cout << "* Time: " << time << " Microseconds" << endl;
+        int time = getAverageTimeAlgorithmA(i, numruns, AlgorithmA);
+        cout << "* Average Time: " << time << " Microseconds" << endl;
         cout << "* \n" << "****************************************************************************************************" << endl;
         cout << "\n\n" << endl;
     }
@@ -571,7 +568,7 @@ void Schedule::printScheduleAlgorithmAAll(Schedule * AlgorithmA)
 
 
 //printSchedules prints schedules of all three algorithms for all tasksets
-void Schedule::printSchedulesAll(Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
+void Schedule::printSchedulesAll(int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
 {
     for (int i = 0; i < m_tasksets.size(); i++)
     {
@@ -603,80 +600,20 @@ void Schedule::printSchedulesAll(Schedule* EDF, Schedule* LLF, Schedule* Algorit
         string schedule = EDF->runEDF_Algorithm();
         cout << "* " << schedule << endl;
         cout << "* " << endl;
-        int timeE = getTimeEDF(i, EDF);
-        cout << "* Time: " << timeE << " Microseconds" << endl;
-        cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
-        cout << "* LLF: " << endl;
-        // Instantiate LLF object
-        schedule = LLF->CheckLLFSchedule();
-        cout << "* " << schedule << endl;
-        cout << "* " << endl;
-        int timeL = getTimeLLF(i, LLF);
-        cout << "* Time: " << timeL << " Microseconds" << endl;
-        cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
-        cout << "* Algorithm-A: " << endl;
-        //Call Algorithm A
-        cout << "* " << AlgorithmA->algorithmASchedule() << endl;
-        cout << "* " << endl;
-        int timeA = getTimeAlgorithmA(i, AlgorithmA);
-        cout << "* Time: " << timeA << " Microseconds" << endl;
-        cout << "* \n" << "****************************************************************************************************" << endl;
-        cout << "\n\n" << endl;
-    }
-}
-
-void Schedule::printAverageTimesAll(int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA)
-{
-    for (int i = 0; i < m_tasksets.size(); i++)
-    {
-        m_processors = m_tasksets[i].getNumProcessors();
-        m_lcm = m_tasksets[i].getLCM();
-        setAlgorithmsMemberVariables(EDF);
-        setAlgorithmsMemberVariables(LLF);
-        setAlgorithmsMemberVariables(AlgorithmA);
-
-        EDF->setTaskSet(0, m_tasksets[i]);
-        LLF->setTaskSet(0, m_tasksets[i]);
-        AlgorithmA->setTaskSet(0, m_tasksets[i]);
-
-        cout << "* Task Set " << i+1 << endl;
-        cout << "****************************************************************************************************" << endl;
-        cout << "* Tasks: " << m_tasksets[i].getNumTasks() << endl; 
-        cout << "* Processors: " << m_processors << endl;
-        cout << "* Utilization Rate: " << m_tasksets[i].calculateTotalUtilizationRate() << endl;
-        cout << "* USI: " << m_tasksets[i].USI() << endl;
-        cout << "* EUSI: " << m_tasksets[i].EUSI() << endl;
-        cout << "* LCM: " << m_lcm << endl;
-        cout << "* Preemptive: " << (m_tasksets[i].getPreemptive() ? "True" : "False") << endl;
-        for (int j = 0; j < m_tasksets[i].getNumTasks(); j++)
-        {
-            cout << "* " << m_tasksets[i].getTask(j).getName() << ", S: " << m_tasksets[i].getTask(j).getStartTime() << ", C: " << m_tasksets[i].getTask(j).getComputationTime() << ", HD: " << m_tasksets[i].getTask(j).getHardDeadline() << ", SD: " << m_tasksets[i].getTask(j).getSoftDeadline() << ", P: " << m_tasksets[i].getTask(j).getPeriod() << endl;
-        }
-        cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
-        cout << "* EDF: " << endl;
-        string schedule = EDF->runEDF_Algorithm();
-        cout << "* " << schedule << endl;
-        cout << "* " << endl;
-        double timeE = getAverageTimeEDF(i, numruns, EDF);
-        cout << "* Number of runs: " << numruns << endl;
+        int timeE = getAverageTimeEDF(i, numruns, EDF);
         cout << "* Average Time: " << timeE << " Microseconds" << endl;
         cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
         cout << "* LLF: " << endl;
-        // Instantiate LLF object
         schedule = LLF->CheckLLFSchedule();
         cout << "* " << schedule << endl;
         cout << "* " << endl;
-        double timeL = getAverageTimeLLF(i, numruns, LLF);
-        cout << "* Number of runs: " << numruns << endl;
+        int timeL = getAverageTimeLLF(i, numruns, LLF);
         cout << "* Average Time: " << timeL << " Microseconds" << endl;
         cout << "* \n" << "*---------------------------------------------------------------------------------------------------" << endl;
         cout << "* Algorithm-A: " << endl;
-        //Call Algorithm A
-        schedule = AlgorithmA->algorithmASchedule();
-        cout << "* " << schedule << endl;
+        cout << "* " << AlgorithmA->algorithmASchedule() << endl;
         cout << "* " << endl;
-        double timeA = getAverageTimeAlgorithmA(i, numruns, AlgorithmA);
-        cout << "* Number of runs: " << numruns << endl;
+        int timeA = getAverageTimeAlgorithmA(i, numruns, AlgorithmA);
         cout << "* Average Time: " << timeA << " Microseconds" << endl;
         cout << "* \n" << "****************************************************************************************************" << endl;
         cout << "\n\n" << endl;
@@ -761,7 +698,8 @@ string Schedule::algorithmASchedule() { return ""; }
 string Schedule::runEDF_Algorithm() { return ""; }
 string Schedule::CheckLLFSchedule() { return ""; }
 
-void Schedule::setAlgorithmsMemberVariables(Schedule* Algorithm) {
+void Schedule::setAlgorithmsMemberVariables(Schedule* Algorithm)
+{
     Algorithm->m_processors = m_processors;
     Algorithm->m_lcm = m_lcm;
 }

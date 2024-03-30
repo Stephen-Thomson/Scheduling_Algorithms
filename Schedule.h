@@ -34,7 +34,7 @@ class Schedule
 
         void printTaskSet(int index);
 
-        void readTaskSets(string filename);
+        bool readTaskSets(string filename);
 
         void writeResults(string filename, int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
 
@@ -62,23 +62,22 @@ class Schedule
 
         double getAverageTimeAlgorithmA(int index, int numruns, Schedule* AlgorithmA);
 
-        void printScheduleEDF(int index, Schedule* EDF);
+        void printScheduleEDF(int index, int numruns, Schedule* EDF);
 
-        void printScheduleLLF(int index, Schedule* LLF);
+        void printScheduleLLF(int index, int numruns,  Schedule* LLF);
 
-        void printScheduleAlgorithmA(int index, Schedule* AlgorithmA);
+        void printScheduleAlgorithmA(int index, int numruns,  Schedule* AlgorithmA);
 
-        void printSchedules(int index, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
+        void printSchedules(int index, int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
 
-        void printScheduleEDFAll(Schedule * EDF);
+        void printScheduleEDFAll(int numruns, Schedule * EDF);
 
-        void printScheduleLLFAll(Schedule* LLF);
+        void printScheduleLLFAll(int numruns, Schedule* LLF);
 
-        void printScheduleAlgorithmAAll(Schedule * AlgorithmA);
+        void printScheduleAlgorithmAAll(int numruns, Schedule * AlgorithmA);
 
-        void printSchedulesAll(Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
+        void printSchedulesAll(int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
 
-        void printAverageTimesAll(int numruns, Schedule* EDF, Schedule* LLF, Schedule* AlgorithmA);
         virtual string algorithmASchedule();
         virtual string runEDF_Algorithm();
         void setAlgorithmsMemberVariables(Schedule* Algorithm);
