@@ -342,9 +342,9 @@ unsigned long long TaskSet::getLCM()
     {
         leastcm = lcm(leastcm, m_tasks[i].getPeriod());
     }
-    if (leastcm > 18446744073709551615 || leastcm < 0)
+    if (leastcm > 500 || leastcm < 0)
     {
-        leastcm = 18446744073709551615;
+        leastcm = 500;
     }
     return leastcm;
 }

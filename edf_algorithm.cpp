@@ -27,9 +27,9 @@ unsigned long long EDF_Algorithm::getLCM()
 	{
 		LCM = lcm(LCM, task.getPeriod());
 	}
-	if (LCM > 18446744073709551615 || LCM < 0)
+	if (LCM > 500 || LCM < 0)
     {
-        LCM = 18446744073709551615;
+        LCM = 500;
     }
 
 	return LCM;
